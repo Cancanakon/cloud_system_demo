@@ -1,0 +1,125 @@
+<!-- templates/dashboard.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard_style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <title>Dashboard</title>
+
+</head>
+<body>
+    <div class="container">
+        <h1>Dashboard</h1>
+        <p>Kullanıcı Adı: {{ current_user.username }}</p>
+
+        <h2>Dosyalarınız:</h2>
+        {% if files %}
+            <ul>
+                {% for file in files %}
+                    <li>
+                        {{ file }}
+                        <div>
+                            <a href="{{ url_for('download', user_id=current_user.id, filename=file) }}" class="download-button">İndir</a>
+                            <a href="#" class="delete-button" data-filename="{{ file }}">Sil</a>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="no-files-message">Henüz hiç dosyanız yok.</p>
+        {% endif %}
+
+        <h2>Dosya Yükle</h2>
+        <form id="uploadForm" method="POST" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            {{ form.hidden_tag() }}
+            <label for="file">Dosyaları Seç:</label>
+            <input type="file" id="file" name="file" multiple required>
+            <button type="submit">Yükle</button>
+        </form>
+
+        <div id="progress-container">
+            <progress id="progressBar" value="0" max="100"></progress>
+            <p id="status"></p>
+        </div>
+
+        <div id="filePreviews"></div>
+
+        <a href="{{ url_for('index') }}" class="home-button">Ana Sayfa</a>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#uploadForm').submit(function(e) {
+                e.preventDefault();
+
+                var formData = new FormData(this);
+
+                // Dosya yüklenirken progress gösterimi
+                $('#progress-container').show();
+
+             $.ajax({
+        url: "{{ url_for('upload') }}",
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        xhr: function() {
+            var xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener("progress", function(evt) {
+                if (evt.lengthComputable) {
+                    var percentComplete = (evt.loaded / evt.total) * 100;
+                    $('#progressBar').val(percentComplete);
+                    $('#status').html(percentComplete.toFixed(2) + '% Yüklendi');
+                }
+            }, false);
+            return xhr;
+        },
+        success: function(data) {
+            // Yükleme tamamlandığında sayfayı yenile
+            location.reload();
+        },
+        error: function() {
+            $('#status').html('Yükleme Başarısız');
+            // Yükleme hatası durumunda progress bar, status ve önizleme gizlenir.
+            $('#progress-container').hide();
+            $('#filePreviews').html('');
+            $('#file').val('');
+        }
+    });
+});
+            $('#file').change(function() {
+                displayFilePreviews(this.files);
+            });
+
+            // Sil butonlarına tıklama işlemi eklendi
+            $('.delete-button').click(function(e) {
+                e.preventDefault();
+                var fileToDelete = $(this).data('filename'); // Dosya adını al
+                if (confirm('Bu dosyayı silmek istediğinizden emin misiniz?')) {
+                    window.location.href = "{{ url_for('delete_file', user_id=current_user.id, filename='') }}/" + fileToDelete;
+                }
+            });
+        });
+
+        // Seçilen dosyaların önizlemesini gösteren fonksiyon
+        function displayFilePreviews(files) {
+            $('#filePreviews').html('');
+
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#filePreviews').append('<div class="file-preview"><img src="' + e.target.result + '" alt="Dosya Önizleme"></div>');
+                }
+
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+</body>
+</html>

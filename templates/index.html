@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Exo:400,700">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>MILITEK CLOUD</title>
+</head>
+<body>
+    <div class="area">
+        <ul class="circles">
+
+        </ul>
+    </div>
+
+    <div class="context">
+        <h1>MILITEK BULUT DEPO SİSTEMİ</h1>
+        <p>Bulut yedeklemede Yalçın Bulut kadar sağlamız.</p>
+          <nav class="button-container">
+        <a href="{{ url_for('register') }}" class="btn slide-up">Kayıt Ol</a>
+        <a href="{{ url_for('login') }}" class="btn slide-up">Giriş Yap</a>
+    </nav>
+    </div>
+
+
+
+</body>
+</html>
